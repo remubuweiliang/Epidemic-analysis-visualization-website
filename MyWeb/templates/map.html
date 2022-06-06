@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<script type="text/javascript" src="http://vuejs.org/js/vue.min.js"></script>
+<link rel="stylesheet" type="text/css" href="http://unpkg.com/iview/dist/styles/iview.css">
+<script type="text/javascript" src="http://unpkg.com/iview/dist/iview.min.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script src="../static/china.js"></script>
+
+<body>
+    <div id="map" style="text-align: center;">
+        <layout style="background: #fff;">
+            <card style="width:90%;height:450px;margin: 5% auto;">
+                <p slot="title">
+                    <icon type="ios-map" size="22" color="#5b6270"></icon>
+                </p>
+                <tabs type="card">
+                    <tab-pane label="confirm" name="confirm">
+                        <div ref="map0" style="width: 80%;height:300px;margin: auto auto;"></div>
+                    </tab-pane>
+                    <tab-pane label="dead" name="dead">
+                        <div ref="map1" style="width: 80%;height:300px;margin: auto auto;"></div>
+                    </tab-pane>
+                    <tab-pane label="heal" name="heal">
+                        <div ref="map2" style="width: 80%;height:300px;margin: auto auto;"></div>
+                    </tab-pane>
+                </tabs>
+            </card>
+        </layout>
+    </div>
+    <script>
+        new Vue({
+            el: '#map',
+            data() {
+                return {
+                    optionMap: {
+                        backgroundColor: '#FFFFFF',
+                        title: {
+                            text: '全国地图大数据',
+                            subtext: '数据动态更新自网络',
+                            x: 'center'
+                        },
+                        tooltip: {
+                            trigger: 'item'
+                        },
+                        toolbox: {
+                            show: true,
+                            feature: {
+                                dataZoom: {
+                                    yAxisIndex: 'none'
+                                },
+                                dataView: {
+                                    readOnly: false
+                                },
+                                magicType: {
+                                    type: ['line', 'bar']
+                                },
+                                restore: {},
+                                saveAsImage: {}
+                            }
+                        },
+                        //左侧小导航图标
+                        visualMap: {
+                            show: true,
+                            x: 'left',
+                            y: 'center',
+                            splitList: [{
+                                start: 500,
+                                end: 600
+                            }, {
+                                start: 400,
+                                end: 500
+                            }, {
+                                start: 300,
+                                end: 400
+                            }, {
+                                start: 200,
+                                end: 300
+                            }, {
+                                start: 100,
+                                end: 200
+                            }, {
+                                start: 0,
+                                end: 100
+                            }, ],
+                            color: ['#5475f5', '#9feaa5', '#85daef', '#74e2ca', '#e6ac53', '#9fb5ea']
+                        },
+
+                        //配置属性
+                        series: [{
+                            name: '数据',
+                            type: 'map',
+                            mapType: 'china',
+                            roam: true,
+                            label: {
+                                normal: {
+                                    show: true //省份名称  
+                                },
+                                emphasis: {
+                                    show: false
+                                }
+                            },
+                            data: null //数据
+                        }]
+                    },
+                    confirm: [], //确诊数据
+                    dead: [], //死亡数据
+                    heal: [], //治愈数据
+                    spinShow: false, //是否等待
+                    flag: false, //数据是否加载完毕
+                }
+            },
+            mounted() {
+                this.spin();
+                var self = this;
+                axios.get('/map_data')
+                    .then(function(response) {
+                        console.log(response);
+                        //对拿到的数据进行处理
+                        for (var i = 0; i < response.data.data.length; i++) {
+                            var confirm = {
+                                name: response.data.data[i].name,
+                                value: response.data.data[i].total.confirm,
+                            };
+                            var dead = {
+                                name: response.data.data[i].name,
+                                value: response.data.data[i].total.dead,
+                            };
+                            var heal = {
+                                name: response.data.data[i].name,
+                                value: response.data.data[i].total.heal,
+                            };
+                            self.confirm.push(confirm);
+                            self.dead.push(dead);
+                            self.heal.push(heal);
+                        }
+                        //axios异步处理，一定要装好数据再初始化！！！
+                        self.loadEcharts();
+                    })
+                    .catch(function(error) { // 请求失败处理
+                        console.log(error);
+                    });
+
+            },
+            methods: {
+                loadEcharts() {
+                    //主加载函数，为了能单独修改每一个图的配置
+                    this.loading0();
+                    this.loading1();
+                    this.loading2();
+                },
+                loading0() {
+                    //把数据和配置装入配置中的数据集
+                    this.optionMap.series[0].data = this.confirm;
+                    this.optionMap.title.text = "全国疫情确诊数据";
+                    this.optionMap.visualMap.splitList = [{
+                        start: 15000,
+                        end: 70000
+                    }, {
+                        start: 3000,
+                        end: 15000
+                    }, {
+                        start: 1000,
+                        end: 3000
+                    }, {
+                        start: 500,
+                        end: 1000
+                    }, {
+                        start: 100,
+                        end: 500
+                    }, {
+                        start: 0,
+                        end: 100
+                    }, ];
+                    //初始化echarts实例
+                    var myChart = echarts.init(this.$refs.map0);
+                    //使用制定的配置项和数据显示图表
+                    myChart.setOption(this.optionMap);
+                },
+                loading1() {
+                    //把数据和配置装入配置中的数据集
+                    this.optionMap.series[0].data = this.dead;
+                    this.optionMap.title.text = "全国疫情死亡数据";
+                    this.optionMap.visualMap.splitList = [{
+                        start: 600,
+                        end: 5000
+                    }, {
+                        start: 300,
+                        end: 600
+                    }, {
+                        start: 100,
+                        end: 300
+                    }, {
+                        start: 0,
+                        end: 100
+                    }, ];
+                    //初始化echarts实例
+                    var myChart = echarts.init(this.$refs.map1);
+                    //使用制定的配置项和数据显示图表
+                    myChart.setOption(this.optionMap);
+                },
+                loading2() {
+                    //把数据和配置装入配置中的数据集
+                    this.optionMap.series[0].data = this.heal;
+                    this.optionMap.title.text = "全国疫情治愈数据";
+                    this.optionMap.visualMap.splitList = [{
+                        start: 5000,
+                        end: 70000
+                    }, {
+                        start: 1000,
+                        end: 5000
+                    }, {
+                        start: 1000,
+                        end: 800
+                    }, {
+                        start: 600,
+                        end: 1000
+                    }, {
+                        start: 200,
+                        end: 600
+                    }, {
+                        start: 0,
+                        end: 200
+                    }, ];
+                    //初始化echarts实例
+                    var myChart = echarts.init(this.$refs.map2);
+                    //使用制定的配置项和数据显示图表
+                    myChart.setOption(this.optionMap);
+                    this.flag = true; //取消等待状态
+                },
+                spin() {
+                    this.spinShow = true;
+                    self = this;
+                    this.timer = setInterval(() => {
+                        if (self.flag) {
+                            clearInterval(self.timer);
+                            self.flag = false;
+                            self.spinShow = false;
+                        }
+                    }, 1000);
+                },
+            }
+        })
+    </script>
+</body>
+
+</html>

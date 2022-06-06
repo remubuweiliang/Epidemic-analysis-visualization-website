@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<script type="text/javascript" src="http://vuejs.org/js/vue.min.js"></script>
+<link rel="stylesheet" type="text/css" href="http://unpkg.com/iview/dist/styles/iview.css">
+<script type="text/javascript" src="http://unpkg.com/iview/dist/iview.min.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+
+<body>
+    <div id="form" style="text-align: center;">
+        <layout style="background: #fff;">
+            <card style="width:96%;height:500px;margin: 2% auto;">
+                <p slot="title">
+                    <icon type="ios-analytics" size="22" color="#5b6270"></icon>
+                </p>
+                <tabs type="card">
+                    <tab-pane label="National data" name="National data">
+                        <div ref="form0" style="height:380px;margin: auto auto;"></div>
+                    </tab-pane>
+                    <tab-pane label="sunburst" name="sunburst">
+                        <div ref="form1" style="height:380px;margin: auto auto;"></div>
+                    </tab-pane>
+                    <tab-pane label="treemap" name="treemap">
+                        <div ref="form2" style="height:380px;margin: auto auto;"></div>
+                    </tab-pane>
+                </tabs>
+
+            </card>
+        </layout>
+    </div>
+    <script>
+        new Vue({
+            el: '#form',
+            data() {
+                return {
+                    option: null, //json配置
+                    spinShow: false, //是否等待
+                    flag: false, //数据是否加载完毕
+                    all: [], //全国数据
+                    data: [], //日期数据
+                    detail: [], //total细节
+                }
+            },
+            mounted() {
+                this.spin();
+                var self = this;
+                axios.get('/time_data')
+                    .then(function(response) {
+                        console.log(response);
+                        // 数据处理
+                        for (var i = 0; i < response.data.data.length; i++) {
+                            var j = {
+                                title: {
+                                    text: response.data.data[i].data,
+                                },
+                                series: [{
+                                    data: [response.data.data[i].total.confirm == null ? 0 : response.data.data[i].total.confirm,
+                                        response.data.data[i].total.heal == null ? 0 : response.data.data[i].total.heal,
+                                        response.data.data[i].total.dead == null ? 0 : response.data.data[i].total.dead,
+                                        response.data.data[i].total.input == null ? 0 : response.data.data[i].total.input,
+                                        response.data.data[i].total.storeConfirm == null ? 0 : response.data.data[i].total.storeConfirm,
+                                    ]
+                                }]
+                            }
+                            self.data.push(response.data.data[i].data)
+                            self.all.push(j);
+                        }
+                        //axios异步处理，一定要装好数据再初始化！！！
+                        self.loadEcharts();
+                    })
+                    .catch(function(error) { // 请求失败处理
+                        console.log(error);
+                    });
+                axios.get('/map_data')
+                    .then(function(response) {
+                        console.log(response);
+                        //对拿到的数据进行处理
+                        for (var i = 0; i < response.data.data.length; i++) {
+                            var y = {
+                                name: response.data.data[i].name,
+                                value: response.data.data[i].total.confirm,
+                                children: []
+                            }
+                            for (var j = 0; j < response.data.data[i].children.length; j++) {
+                                var o = {
+                                    name: response.data.data[i].children[j].name,
+                                    value: response.data.data[i].children[j].total.confirm,
+                                    children: []
+                                }
+                                y.children.push(o);
+                            }
+                            self.detail.push(y);
+                        }
+                        console.log(self.detail);
+                        //axios异步处理，一定要装好数据再初始化！！！
+                        self.loadEcharts();
+                    })
+                    .catch(function(error) { // 请求失败处理
+                        console.log(error);
+                    });
+            },
+            methods: {
+                loadEcharts() {
+                    //主加载函数，为了能单独修改每一个图的配置
+                    this.loading0();
+                    this.loading1();
+                    this.loading2();
+                },
+                loading0() {
+                    this.option = {
+                        title: {
+                            text: '中国疫情数据',
+                            subtext: '数据动态更新自网络'
+                        },
+                        tooltip: {
+                            trigger: 'axis',
+                            axisPointer: {
+                                type: 'shadow'
+                            }
+                        },
+                        toolbox: {
+                            show: true,
+                            feature: {
+                                dataZoom: {
+                                    yAxisIndex: 'none'
+                                },
+                                dataView: {
+                                    readOnly: false
+                                },
+                                magicType: {
+                                    type: ['line', 'bar']
+                                },
+                                restore: {},
+                                saveAsImage: {}
+                            }
+                        },
+                        legend: {
+                            data: ['number']
+                        },
+                        grid: {
+                            left: '6%',
+                            right: '6%',
+                            bottom: 60,
+                            containLabel: true
+                        },
+                        xAxis: {
+                            type: 'value',
+                            boundaryGap: [0, 0.01]
+                        },
+                        yAxis: {
+                            type: 'category',
+                            data: ['confirm', 'heal', 'dead', 'input', 'storeConfirm'],
+                            inverse: true,
+                            animationDuration: 500,
+                            animationDurationUpdate: 500,
+                        },
+                        animationDuration: 0,
+                        animationDurationUpdate: 3000,
+                        animationEasing: 'linear',
+                        animationEasingUpdate: 'linear',
+                        series: [{
+                            realtimeSort: true,
+                            name: 'number',
+                            type: 'bar',
+                            // data: [18203, 23489, 29034]
+                            label: {
+                                show: true,
+                                position: 'right',
+                                valueAnimation: true
+                            }
+                        }],
+                        timeline: {
+                            // timeline.data中的每一项，对应于options数组中的每个option
+                            data: this.data,
+                            autoPlay: true,
+                            loop: true,
+                            playInterval: 500,
+                            padding: [5, 20],
+                            realtime: true,
+                            bottom: 0,
+                            left: '6%',
+                            right: '6%',
+                            label: {
+                                show: false,
+                            }
+                        },
+                        options: this.all
+                    };
+                    //初始化echarts实例
+                    var myChart = echarts.init(this.$refs.form0);
+                    //使用制定的配置项和数据显示图表
+                    myChart.setOption(this.option);
+                },
+                loading1() {
+                    this.option = {
+                        title: {
+                            text: '中国各省确诊数据',
+                            subtext: '数据动态更新自网络'
+                        },
+                        toolbox: {
+                            show: true,
+                            feature: {
+                                dataZoom: {
+                                    yAxisIndex: 'none'
+                                },
+                                dataView: {
+                                    readOnly: false
+                                },
+                                magicType: {
+                                    type: ['line', 'bar']
+                                },
+                                restore: {},
+                                saveAsImage: {}
+                            }
+                        },
+                        series: {
+                            type: 'sunburst',
+                            radius: [0, '95%'],
+                            data: this.detail,
+                            emphasis: {
+                                focus: 'ancestor'
+                            },
+                        }
+                    };
+                    //初始化echarts实例
+                    var myChart = echarts.init(this.$refs.form1);
+                    //使用制定的配置项和数据显示图表
+                    myChart.setOption(this.option);
+                },
+                loading2() {
+                    this.option = {
+                        title: {
+                            text: '中国各省确诊数据',
+                            subtext: '数据动态更新自网络'
+                        },
+                        toolbox: {
+                            show: true,
+                            feature: {
+                                dataZoom: {
+                                    yAxisIndex: 'none'
+                                },
+                                dataView: {
+                                    readOnly: false
+                                },
+                                magicType: {
+                                    type: ['line', 'bar']
+                                },
+                                restore: {},
+                                saveAsImage: {}
+                            }
+                        },
+                        series: [{
+                            type: 'treemap',
+                            data: this.detail
+                        }]
+                    };
+                    //初始化echarts实例
+                    var myChart = echarts.init(this.$refs.form2);
+                    //使用制定的配置项和数据显示图表
+                    myChart.setOption(this.option);
+                    this.flag = true; //取消等待状态
+                },
+                spin() {
+                    this.spinShow = true;
+                    self = this;
+                    this.timer = setInterval(() => {
+                        if (self.flag) {
+                            clearInterval(self.timer);
+                            self.flag = false;
+                            self.spinShow = false;
+                        }
+                    }, 1000);
+                },
+            }
+        })
+    </script>
+</body>
+
+</html>

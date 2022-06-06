@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+{% raw %}
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<script type="text/javascript" src="http://vuejs.org/js/vue.min.js"></script>
+<link rel="stylesheet" type="text/css" href="http://unpkg.com/iview/dist/styles/iview.css">
+<script type="text/javascript" src="http://unpkg.com/iview/dist/iview.min.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+<body>
+    <div id="help" style="text-align: center;">
+        <layout style="background: #fff;">
+            <card style="width:90%;height:450px;margin: 5% auto;">
+                <tabs type="card" draggable="true" closable @on-drag-drop="handleDragDrop">
+                    <tab-pane v-for="(tab, index) in tabList" :key="index" :label="tab.label" :name="tab.name">
+                        <i-input v-model="tab.data" type="textarea" :autosize="{minRows: 17,maxRows: 17}" placeholder="Enter something..."></i-input>
+                    </tab-pane>
+                    <i-button @click="handleTabsAdd" size="small" slot="extra">add</i-button>
+                </tabs>
+            </card>
+        </layout>
+    </div>
+    <script>
+        new Vue({
+            el: '#help',
+            data() {
+                return {
+                    tabList: [{
+                        label: 'Tap1',
+                        name: 'name1',
+                        data: 'tap1',
+                    }, {
+                        label: 'Tap2',
+                        name: 'name2',
+                        data: 'tap2',
+                    }, {
+                        label: 'Tap3',
+                        name: 'name3',
+                        data: 'tap3',
+                    }, {
+                        label: 'Tap4',
+                        name: 'name4',
+                        data: 'tap4',
+                    }, {
+                        label: 'Tap5',
+                        name: 'name5',
+                        data: 'tap5',
+                    }]
+                }
+            },
+            methods: {
+                handleTabsAdd() {
+                    var x = {
+                        label: 'Tap' + (this.tabList.length + 1),
+                        name: 'name' + (this.tabList.length + 1),
+                        data: 'tap' + (this.tabList.length + 1),
+                    }
+                    this.tabList.push(x);
+                },
+                handleDragDrop(name, newName, a, b, names) {
+                    // names 为调整后的 name 集合
+                    this.tabList.splice(b, 1, ...this.tabList.splice(a, 1, this.tabList[b]));
+                }
+            }
+        })
+    </script>
+</body>
+{% endraw %}
+
+</html>

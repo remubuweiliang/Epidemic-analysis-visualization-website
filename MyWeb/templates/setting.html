@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<script type="text/javascript" src="http://vuejs.org/js/vue.min.js"></script>
+<link rel="stylesheet" type="text/css" href="http://unpkg.com/iview/dist/styles/iview.css">
+<script type="text/javascript" src="http://unpkg.com/iview/dist/iview.min.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<style>
+
+</style>
+
+<body>
+    <div id="setting" style="text-align: center;">
+        <layout style="background: #fff;">
+            <card style="width:350px;margin: 10% auto;">
+                <p slot="title">
+                    <icon type="md-contrast" :size=size+0.07*add></icon>
+                </p>
+                <list>
+                    <list-item>
+                        <h3 v-bind:style="{fontSize: 0.75*size+0.05*add+ 'px' }">Theme</h3>
+                        <divider type="vertical" />
+                        <i-switch v-model="flag" @on-change="sendMessage('change-theme')">
+                            <icon type="ios-cloudy-night" slot="open"></icon>
+                            <icon type="ios-sunny" slot="close"></icon>
+                        </i-switch>
+                    </list-item>
+                    <list-item>
+                        <h3 v-bind:style="{fontSize: 0.75*size+0.05*add+ 'px' }">Font&nbsp;&nbsp;&nbsp;&nbsp;</h3>
+                        <divider type="vertical" />
+                        <slider :step="10" v-model="add" show-stops style="width: 200px;height: 50px;"></slider>
+                    </list-item>
+                    <list-item>
+                        <h3 v-bind:style="{fontSize: 0.75*size+0.05*add+ 'px' }">Notice&nbsp;</h3>
+                        <divider type="vertical" />
+                        <time-picker type="time" v-model="time" confirm placeholder="Select time" style="width: 160px;"></time-picker>
+                    </list-item>
+                    <list-item>
+                        &nbsp;&nbsp;&nbsp;
+                        <icon type="ios-time" :size=size*0.125*14+0.05*add></icon>
+                        &nbsp;&nbsp;&nbsp;
+                        <divider type="vertical" />
+                        <i-button type="primary" size="large" @click.native="timer">sure</i-button>
+                </list>
+            </card>
+        </layout>
+    </div>
+    <script>
+        new Vue({
+            el: '#setting',
+            data() {
+                return {
+                    theme: "dark",
+                    flag: true,
+                    size: 16,
+                    add: 0,
+                    time: 0,
+                }
+            },
+            mounted() {
+                this.$nextTick(() => {
+                    window.addEventListener('message', this.handleMessage);
+                    // 告诉父组件准备好接收消息了
+                    const x = {
+                        cmd: 'ready-for-receiving'
+                    };
+                    //转化为json字符串，兼容低版本浏览器
+                    const data = JSON.stringify(x);
+                    window.parent.postMessage(data, '*');
+                })
+            },
+            destroyed() {
+                // 注意移除监听!
+                window.removeEventListener('message', this.handleMessage)
+            },
+            methods: {
+                handleMessage(event) {
+                    const x = event.data
+                    const data = JSON.parse(x)
+                    switch (data.cmd) {
+                        case 'cannot-change':
+                            {
+                                console.log("Theme cannot change!!!");
+                                this.flag = !this.flag;
+                                break;
+                            }
+                    }
+                },
+                sendMessage(str) {
+                    const x = {
+                        cmd: str,
+                    };
+                    const data = JSON.stringify(x)
+                    window.parent.postMessage(data, '*');
+                },
+                timer() {
+                    const arr = this.time.split(':')
+                    const x = parseInt(arr[2]) + 60 * parseInt(arr[1]) + 3600 * parseInt(arr[0]);
+                    this.sendMessage(x)
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>

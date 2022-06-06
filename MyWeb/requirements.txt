@@ -1,0 +1,17 @@
+appdirs==1.4.4
+click==8.0.0
+colorama==0.4.4
+distlib==0.3.1
+filelock==3.0.12
+Flask==2.0.0
+itsdangerous==2.0.1
+Jinja2==3.0.1
+MarkupSafe==2.0.1
+pbr==5.6.0
+six==1.16.0
+stevedore==3.3.0
+virtualenv==20.4.6
+virtualenv-clone==0.5.4
+virtualenvwrapper==4.8.4
+virtualenvwrapper-win==1.2.6
+Werkzeug==2.0.1

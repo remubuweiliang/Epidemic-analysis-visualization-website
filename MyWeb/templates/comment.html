@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<script type="text/javascript" src="http://vuejs.org/js/vue.min.js"></script>
+<link rel="stylesheet" type="text/css" href="http://unpkg.com/iview/dist/styles/iview.css">
+<script type="text/javascript" src="http://unpkg.com/iview/dist/iview.min.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+<body>
+    <div id="comment" style="text-align: center;">
+        <layout style="background: #fff;">
+            <card style="width:350px;height:200px;margin: 10% auto;">
+                <p slot="title">
+                    <icon type="md-star-half" size="22" color="#f5a623"></icon>
+                </p>
+                <row><br></row>
+                <row>
+                    <h3>您对网站的满意度？</h3>
+                </row>
+                <row><br></row>
+                <row>
+                    <rate show-text allow-half v-model="start"></rate>
+                    <span style="color: #f5a623;font-size: 24px;font-weight: 800;">{{start}}</span>
+                </row>
+            </card>
+        </layout>
+    </div>
+    <script>
+        new Vue({
+            el: '#comment',
+            data() {
+                return {
+                    start: 4.8,
+                }
+            },
+        })
+    </script>
+</body>
+
+</html>

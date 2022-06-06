@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+{% raw %}
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Index</title>
+</head>
+<script type="text/javascript" src="http://vuejs.org/js/vue.min.js"></script>
+<link rel="stylesheet" type="text/css" href="http://unpkg.com/iview/dist/styles/iview.css">
+<script type="text/javascript" src="http://unpkg.com/iview/dist/iview.min.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<style>
+    .layout {
+        border: 1px solid #d7dde4;
+        background: #f5f7f9;
+        position: relative;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    
+    .layout-header-bar {
+        background: #fff;
+        box-shadow: 0 1px 1px rgba(0, 0, 0, .1);
+    }
+    
+    .layout-logo-left {
+        width: 90%;
+        height: 30px;
+        background: #5b6270;
+        border-radius: 3px;
+        margin: 15px auto;
+    }
+    
+    .menu-icon {
+        transition: all .3s;
+    }
+    
+    .rotate-icon {
+        transform: rotate(-90deg);
+    }
+    
+    .menu-item span {
+        display: inline-block;
+        overflow: hidden;
+        width: 69px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        vertical-align: bottom;
+        transition: width .2s ease .2s;
+    }
+    
+    .menu-item i {
+        transform: translateX(0px);
+        transition: font-size .2s ease, transform .2s ease;
+        vertical-align: middle;
+        font-size: 16px;
+    }
+    
+    .collapsed-menu span {
+        width: 0px;
+        transition: width .2s ease;
+    }
+    
+    .collapsed-menu i {
+        transform: translateX(5px);
+        transition: font-size .2s ease .2s, transform .2s ease .2s;
+        vertical-align: middle;
+        font-size: 22px;
+    }
+    
+    .layout-footer-center {
+        /* padding-top: 2%; */
+        padding-bottom: 1%;
+        text-align: center;
+    }
+</style>
+
+<body>
+    <div id="index">
+        <layout>
+            <!-- 菜单模块 -->
+            <sider ref="side1" hide-trigger collapsible :collapsed-width="78" v-model="isCollapsed">
+                <i-menu ref="menu0" active-name="0" :theme="theme" width="auto" :class="menuitemClasses" v-bind:style="{ height: height + 'px' }">
+                    <menu-item name="0" disabled>
+                        <icon type="ios-contact" size="28" :style="{color: color}"></icon>
+                        <i-button type="text" ghost size="small" @click="handleChange">
+                            <span :style="{color: color}">{{ user }}</span>
+                        </i-button>
+                    </menu-item>
+                    <menu-item name="0" @click.native="urlChange('/home')">
+                        <icon type="md-planet"></icon>
+                        <span>Home</span>
+                    </menu-item>
+                    <menu-item name="1" @click.native="urlChange('/search')">
+                        <icon type="ios-search"></icon>
+                        <span>Search</span>
+                    </menu-item>
+                    <submenu name="2">
+                        <template slot="title">
+                            <icon type="md-stats"></icon>
+                            <span>Chart</span>
+                        </template>
+                        <menu-item name="2-1" @click.native="urlChange('/map')">
+                            <icon type="ios-map"></icon>
+                            <span>Map</span>
+                        </menu-item>
+                        <menu-item name="2-2" @click.native="urlChange('/form')">
+                            <icon type="ios-analytics"></icon>
+                            <span>Form</span>
+                        </menu-item>
+                    </submenu>
+
+                    <submenu name="3">
+                        <template slot="title">
+                            <icon type="ios-chatbubbles"></icon>
+                            <span>Chat</span>
+                        </template>
+                        <menu-item name="3-1" @click.native="urlChange('/chatroom')">
+                            <icon type="md-chatbubbles"></icon>
+                            <span>Chatroom</span>
+                        </menu-item>
+                        <menu-item name="3-2" @click.native="urlChange('/ai_chat')">
+                            <icon type="ios-ionitron-outline"></icon>
+                            <span>AIchat</span>
+                        </menu-item>
+                    </submenu>
+                    <submenu name="4">
+                        <template slot="title">
+                            <icon type="ios-settings"></icon>
+                            <span>Setting</span>
+                        </template>
+                        <menu-item name="4-1" @click.native="urlChange('/setting')">
+                            <icon type="md-contrast"></icon>
+                            <span>Setting</span>
+                        </menu-item>
+                        <menu-item name="4-2" @click.native="urlChange('/help')">
+                            <icon type="md-help"></icon>
+                            <span>Help</span>
+                        </menu-item>
+                        <menu-item name="4-3" @click.native="urlChange('/comment')">
+                            <icon type="md-star-half"></icon>
+                            <span>Comment</span>
+                        </menu-item>
+                    </submenu>
+
+                </i-menu>
+            </sider>
+            <!-- 主模块 -->
+            <layout>
+                <header :style="{padding: 0} " class="layout-header-bar">
+                    <icon @click.native="collapsedSider" :class="rotateicon" :style="{margin: '0 20px'} " type="md-menu" size="28"></icon>
+                    <icon @click="messageShow0 = true" :style="{margin: '0 20px'} " type="md-help-circle" size="28"></icon>
+                </header>
+                <content :style="{margin: '20px', background: '#fff', minHeight: height*0.84+'px'}" style=" position: relative;">
+                    <div>
+                        <iframe ref="iframe" :src="url" frameborder="0" width=100% :height=height*0.84 name="Frame" noresize="noresize" id="Frame" title="Frame">
+                        您的浏览器不支持框架集，请切换浏览器浏览~
+                        </iframe>
+                    </div>
+                    <spin size="large" fix v-if="spinShow"></spin>
+                </content>
+                <footer class="layout-footer-center">2021-10-22 &copy; 月亮不打烊</footer>
+            </layout>
+            <drawer title="User Infomation" width="512" :closable="false" v-model="messageShow0">
+                <row justify="start" align="top">
+                    <i-col span="4">name</i-col>
+                    <i-col span="8">{{this.$data.DATA.user}}</i-col>
+                </row>
+                <row justify="start" align="top">
+                    <i-col span="4">gender</i-col>
+                    <i-col span="8">{{this.$data.DATA.gender}}</i-col>
+                </row>
+                <row justify="start" align="top">
+                    <i-col span="4">City</i-col>
+                    <i-col span="8">{{this.$data.DATA.city}}</i-col>
+                </row>
+                <row justify="start" align="top">
+                    <i-col span="4">mail</i-col>
+                    <i-col span="8">{{this.$data.DATA.mail}}</i-col>
+                </row>
+                <row justify="start" align="top">
+                    <i-col span="4">Birthday</i-col>
+                    <i-col span="8">{{this.$data.DATA.date}}</i-col>
+                </row>
+                <row justify="start" align="top">
+                    <i-col span="4">Hobby</i-col>
+                    <i-col span="8">{{this.$data.DATA.hobby}}</i-col>
+                </row>
+                <row justify="start" align="top">
+                    <i-col span="4">desc</i-col>
+                    <i-col span="8">{{this.$data.DATA.desc}}</i-col>
+                </row>
+                <i-button @click="messageShow1 = true" type="primary">Developer Information</i-button>
+            </drawer>
+            <drawer title="Developer Information" :closable="false" v-model="messageShow1">
+                <row justify="start" align="top">
+                    <i-col span="6">name</i-col>
+                    <i-col span="18">月亮不打烊</i-col>
+                </row>
+                <row justify="start" align="top">
+                    <i-col span="6">gender</i-col>
+                    <i-col span="18">male</i-col>
+                </row>
+                <row justify="start" align="top">
+                    <i-col span="6">City</i-col>
+                    <i-col span="18">['广东'，'潮州']</i-col>
+                </row>
+                <row justify="start" align="top">
+                    <i-col span="6">mail</i-col>
+                    <i-col span="18">remubuweiliang@qq.com</i-col>
+                </row>
+                <row justify="start" align="top">
+                    <i-col span="6">Birthday</i-col>
+                    <i-col span="18">2001-12-20</i-col>
+                </row>
+                <row justify="start" align="top">
+                    <i-col span="6">Hobby</i-col>
+                    <i-col span="18">[ "Eat", "Sleep" ]</i-col>
+                </row>
+                <row justify="start" align="top">
+                    <i-col span="6">desc</i-col>
+                    <i-col span="18">哈哈哈哈哈哈</i-col>
+                </row>
+                <row justify="start" align="top">
+                    <tree :data="treeData" expand-node></tree>
+                </row>
+            </drawer>
+        </layout>
+    </div>
+    <script>
+        const UserList = ['Handsome', 'Lucky', 'Beautiful', 'Respectable', 'Convincing'];
+        const ColorList = ['#2db7f5', '#19be6b', '#ff9900', '#ed4014', '#fff'];
+        new Vue({
+            el: '#index',
+            data() {
+                return {
+                    user: UserList[0],
+                    color: ColorList[0],
+                    theme: "dark ",
+                    flag: true,
+                    isCollapsed: false,
+                    height: 0, //浏览器高度自适应
+                    url: '/home', //框架url
+                    iframeWin: {}, //框架对象
+                    spinShow: false, //是否等待
+                    messageShow0: false, //信息是否显示
+                    messageShow1: false, //信息是否显示
+                    DATA: {}, //用户数据
+                    treeData: [{
+                        title: 'developer',
+                        // expand: true,
+                        children: [{
+                            title: 'name    ',
+                            loading: false,
+                            children: [{
+                                title: '月亮不打烊',
+                            }]
+                        }, {
+                            title: 'gender   ',
+                            loading: false,
+                            children: [{
+                                title: 'male',
+                            }]
+                        }, {
+                            title: 'city    ',
+                            loading: false,
+                            children: [{
+                                title: '广东',
+                                children: [{
+                                    title: '潮州',
+                                }]
+                            }]
+                        }, {
+                            title: 'phone',
+                            loading: false,
+                            children: [{
+                                title: '15816543014',
+                            }]
+                        }, {
+                            title: 'mail    ',
+                            loading: false,
+                            children: [{
+                                title: 'remubuweiliang@qq.com',
+                            }]
+                        }, {
+                            title: 'birthday',
+                            loading: false,
+                            children: [{
+                                title: '2021-10-22',
+                            }]
+                        }, {
+                            title: 'hobby   ',
+                            loading: false,
+                            children: [{
+                                title: 'Eat',
+                            }, {
+                                title: 'Sleep',
+                            }]
+                        }, {
+                            title: 'sesc    ',
+                            loading: false,
+                            children: [{
+                                title: 'hahahahhaha~',
+                            }]
+                        }]
+                    }]
+                }
+            },
+            mounted() {　　　　　　
+                //浏览器高度自适应
+                this.height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+                // 注册监听框架传来的数据
+                this.iframeWin = this.$refs.iframe.contentWindow
+                this.$nextTick(() => {
+                    // 在外部 Vue 的 window 上添加 postMessage 的监听，并且绑定处理函数 handleMessage
+                    window.addEventListener('message', this.handleMessage)
+                });
+                //获取用户数据
+                var self = this;
+                axios.get('/get_userdata')
+                    .then(response => (self.DATA = response.data))
+                    .catch(function(error) { // 请求失败处理
+                        console.log(error);
+                    });
+            },
+            destroyed() {
+                // 注意移除监听！
+                window.removeEventListener('message', this.handleMessage)
+            },
+            computed: {
+                rotateicon() {
+                    return [
+                        'menu-icon',
+                        this.isCollapsed ? 'rotate-icon' : ''
+                    ];
+                },
+                menuitemClasses() {
+                    return [
+                        'menu-item',
+                        this.isCollapsed ? 'collapsed-menu' : ''
+                    ]
+                }
+            },
+            methods: {
+                handleChange() {
+                    const index = UserList.indexOf(this.user);
+                    this.user = index < UserList.length - 1 ? UserList[index + 1] : UserList[0];
+                    this.color = index < ColorList.length - 1 ? ColorList[index + 1] : ColorList[0];
+                },
+                collapsedSider() {
+                    this.$refs.side1.toggleCollapse();
+                },
+                handleBeforeChange() {
+                    return new Promise((resolve) => {
+                        this.$Modal.confirm({
+                            title: '主题切换',
+                            content: '您确认要切换主题吗？',
+                            onOk: () => {
+                                resolve();
+                                this.theme = this.flag ? "light " : "dark ";
+                                this.flag = !this.flag;
+                                this.$Message.success('主题切换成功！');
+                                console.log('Theme already change!!!');
+                            },
+                            onCancel: () => {
+                                this.sendMessage('cannot-change');
+                                this.$Message.error('主题切换失败！');
+                            }
+                        });
+                    });
+                },
+                urlChange(str) {
+                    this.spinShow = true;
+                    self = this;
+                    this.url = str;
+                    myVar = setTimeout(function() {
+                        self.spinShow = false;
+                        clearTimeout(myVar);
+                    }, 500);
+                },
+                sendMessage(str) {
+                    // 外部vue向iframe内部传数据
+                    const x = {
+                        cmd: str,
+                    }; //转化为json字符串，兼容低版本浏览器
+                    const data = JSON.stringify(x)
+                    this.iframeWin.postMessage(data, '*')
+                },
+                handleMessage(event) {
+                    const x = event.data
+                    const data = JSON.parse(x)
+                    switch (data.cmd) {
+                        case 'ready-for-receiving':
+                            { //接受准备消息
+                                console.log("iframe ready!!!");
+                                break;
+                            }
+                        case 'change-theme':
+                            { //接受主题更改的消息
+                                console.log("Change Theme?");
+                                this.handleBeforeChange();
+                            }
+                        default:
+                            {
+                                // console.log(data.cmd);
+                                if (this.isInteger(data.cmd)) {
+                                    //是整数则设置定时器
+                                    var self = this;
+                                    setTimeout(function() {
+                                        self.open(data.cmd);
+                                    }, data.cmd * 1000);
+                                }
+                                break;
+                            }
+                    }
+                },
+                isInteger(obj) { //整数判定
+                    return typeof(obj) === 'number' && obj % 1 === 0
+                },
+                open(x) { //通知开启
+                    this.$Notice.open({
+                        title: 'Notice!',
+                        desc: x + 's ago you have just set a clock~'
+                    });
+                }
+            }
+        })
+    </script>
+</body>
+{% endraw %}
+
+</html>
